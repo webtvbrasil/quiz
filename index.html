@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Seu Quiz</title>
+    </head>
+<body>
+    <div id="quiz-container">Carregando quiz...</div>
+
+    <script src="https://webtvbrasil.github.io/gerador-de-quiz/gerador.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const quizAlias = urlParams.get('alias'); // Pega o alias da URL
+
+            const quizContainerId = 'quiz-container';
+            const container = document.getElementById(quizContainerId);
+
+            if (!quizAlias) {
+                // Se não houver alias, redireciona para o site principal
+                window.location.replace("https://www.especialistt.com.br");
+                return;
+            }
+
+            try {
+                // URL do seu endpoint PHP
+                const phpEndpoint = `https://api.esepcialist.com.br/api/get-quiz.php?alias=${quizAlias}`; 
+                // OU se estiver no mesmo domínio, um caminho relativo
+                // const phpEndpoint = `/api/get-quiz.php?alias=${quizAlias}`; 
+
+                const response = await fetch(phpEndpoint);
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        container.innerHTML = '<p style="color:red; text-align:center;">Quiz não encontrado ou URL inválida.</p>';
+                    } else {
+                        throw new Error(`Erro HTTP: ${response.status}`);
+                    }
+                }
+
+                const quizDataString = await response.text(); // Pega o JSON como texto
+
+                if (typeof window.initializeQuiz === 'function') {
+                    window.initializeQuiz(quizContainerId, quizDataString);
+                } else {
+                    console.error("Erro: A função 'initializeQuiz' não foi carregada.");
+                }
+
+            } catch (error) {
+                console.error("Erro ao carregar o quiz:", error);
+                container.innerHTML = '<p style="color:red; text-align:center;">Não foi possível carregar o quiz. Tente novamente mais tarde.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
