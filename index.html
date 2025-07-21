@@ -1,119 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Responda estas perguntas para Liberar seu Acesso</title>
-    <style>
-        /* Spinner styles */
-        .spinner-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: rgba(255, 255, 255, 0.9);
-            z-index: 9999;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #e91e63; /* Rosa */
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .spinner-text {
-            margin-top: 20px;
-            color: #e91e63;
-            font-family: Arial, sans-serif;
-            font-size: 16px;
-            text-align: center;
-        }
-
-        /* Hide spinner when content is loaded */
-        .loaded .spinner-container {
-            display: none;
-        }
-    </style>
+    <title>Meu Quiz Exclusivo</title>
 </head>
 <body>
-        <div class="spinner-container" id="spinner">
-        <div>
-            <div class="spinner"></div>
-            <div class="spinner-text">Carregando quiz...</div>
-        </div>
-    </div>
+    <div id="quiz-embed-placeholder"></div>
 
-    <div id="quiz-host"></div>     
-        <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const quizAlias = urlParams.get('alias'); // Pega o alias da URL
-            const quizHostElement = document.getElementById('quiz-host'); // Referência ao seu div host
-            const spinner = document.getElementById('spinner');
-            
-            if (!quizAlias) {
-                // Se não houver alias, redireciona para o site principal
-                window.location.replace("https://www.especialist.com.br");
-                return;
-            }
-            
-            try {
-                // URL do seu endpoint PHP que retorna o HTML completo do quiz
-                const phpEndpoint = `https://api.especialist.com.br/api/get-quiz.php?alias=${quizAlias}`; 
-                
-                const response = await fetch(phpEndpoint);
-                
-                if (!response.ok) {
-                    const errorMessage = await response.text(); // Pega a mensagem de erro do PHP, se houver
-                    quizHostElement.innerHTML = errorMessage || '<p style="color:red; text-align:center;">Erro ao carregar o quiz.</p>';
-                    console.error(`Erro HTTP: ${response.status}`, errorMessage);
-                    spinner.style.display = 'none';
-                    return;
-                }
-                
-                // ✅ AGORA VOCÊ PEGA O HTML COMPLETO DIRETAMENTE
-                const quizHtmlContent = await response.text(); 
-                
-                // ✅ INJETA O HTML COMPLETO NO SEU HOST DIV
-                quizHostElement.innerHTML = quizHtmlContent;
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dynamicQuizAlias = urlParams.get('alias'); // Ou 'quiz_alias', como preferir
 
-                // ✅ EXECUTA SCRIPTS EMBUTIDOS (CRUCIAL PARA O QUIZ FUNCIONAR)
-                // Quando o HTML é injetado via innerHTML, <script> tags não são executadas automaticamente.
-                // Precisamos encontrá-los e re-executá-los.
-                const scripts = quizHostElement.querySelectorAll('script');
-                scripts.forEach(oldScript => {
-                    const newScript = document.createElement('script');
-                    // Copia atributos (tipo, src etc.)
-                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                    // Copia o conteúdo (código JavaScript)
-                    newScript.textContent = oldScript.textContent;
-                    // Substitui o script antigo pelo novo para forçar a execução
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
-                });
-
-
-                // Esconde o spinner após o quiz ser renderizado e scripts executados
-                setTimeout(() => {
-                    spinner.style.display = 'none';
-                    document.body.classList.add('loaded'); // Adiciona classe para esconder spinner via CSS
-                }, 100); // Pequeno delay para garantir que tudo foi processado
-
-            } catch (error) {
-                console.error("Erro ao carregar o quiz:", error);
-                quizHostElement.innerHTML = '<p style="color:red; text-align:center;">Não foi possível carregar o quiz. Tente novamente mais tarde.</p>';
-                spinner.style.display = 'none';
-            }
-        });
-    </script>
+            if (dynamicQuizAlias) {
+                const scriptElement = document.createElement('script');
+                scriptElement.id = 'especialist-quiz-loader';
+                scriptElement.src = 'https://api.especialist.com.br/api/chamaquiz.js';
+                scriptElement.setAttribute('alias', dynamicQuizAlias);
+                
+                const placeholder = document.getElementById('quiz-embed-placeholder');
+                if (placeholder) {
+                    placeholder.parentNode.insertBefore(scriptElement, placeholder.nextSibling);
+                } else {
+                    document.body.appendChild(scriptElement);
+                }
+            } else {
+                const placeholder = document.getElementById('quiz-embed-placeholder');
+                if (placeholder) {
+                    placeholder.innerHTML = '<p style="color: red; text-align: center;">Erro: O ID do quiz não foi especificado na URL.</p>';
+                }
+            }
+        });
+    </script>
 </body>
 </html>
