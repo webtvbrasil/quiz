@@ -1,35 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Meu Quiz Exclusivo</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Página com o Quiz Dinâmico</title>
+    <style>
+        /* Opcional: Para garantir que não haja margens no body e o iframe ocupe tudo */
+        body { margin: 0; padding: 0; overflow-x: hidden; } 
+    </style>
 </head>
 <body>
-    <div id="quiz-embed-placeholder"></div>
+    <div id="quiz-anchor"></div> 
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // 1. Obter o alias do quiz da URL ATUAL desta página do GitHub Pages.
+            // Ex: Se a URL for https://webtvbrasil.github.io/quiz/?alias=u98q9cenp6x2
             const urlParams = new URLSearchParams(window.location.search);
-            const dynamicQuizAlias = urlParams.get('alias'); // Ou 'quiz_alias', como preferir
+            const dynamicQuizAlias = urlParams.get('alias'); // <<< AQUI! Pega o valor do parâmetro 'alias'
+                                                            // Se você usasse '?quiz_id=xyz', seria urlParams.get('quiz_id')
 
+            // 2. Verificar se o alias foi encontrado
             if (dynamicQuizAlias) {
+                // 3. Criar a tag <script> do loader do quiz dinamicamente
                 const scriptElement = document.createElement('script');
-                scriptElement.id = 'especialist-quiz-loader';
-                scriptElement.src = 'https://api.especialist.com.br/api/chamaquiz.js';
-                scriptElement.setAttribute('alias', dynamicQuizAlias);
-                
-                const placeholder = document.getElementById('quiz-embed-placeholder');
-                if (placeholder) {
-                    placeholder.parentNode.insertBefore(scriptElement, placeholder.nextSibling);
+                scriptElement.id = 'especialist-quiz-loader'; // ID que o chamaquiz.js espera
+                scriptElement.src = 'https://api.especialist.com.br/api/chamaquiz.js'; // URL do seu loader JS
+                scriptElement.setAttribute('alias', dynamicQuizAlias); // Define o atributo 'alias' com o valor dinâmico
+
+                // 4. Inserir a tag <script> criada no DOM
+                // Ela será inserida logo após o div 'quiz-anchor'.
+                const anchor = document.getElementById('quiz-anchor');
+                if (anchor) {
+                    anchor.parentNode.insertBefore(scriptElement, anchor.nextSibling);
                 } else {
+                    // Fallback: Se o div de ancoragem não for encontrado, adicione no final do body
                     document.body.appendChild(scriptElement);
                 }
             } else {
-                const placeholder = document.getElementById('quiz-embed-placeholder');
-                if (placeholder) {
-                    placeholder.innerHTML = '<p style="color: red; text-align: center;">Erro: Quiz inválido ou não existe.</p>';
+                // 5. Lidar com o caso em que o 'alias' não é fornecido na URL
+                const anchor = document.getElementById('quiz-anchor');
+                if (anchor) {
+                    anchor.innerHTML = '<p style="color: red; text-align: center; font-size: 1.2em;">Erro: O ID do quiz não foi especificado na URL. Exemplo: ?alias=SEU_ID_DO_QUIZ</p>';
+                } else {
+                    console.error("Erro: Elemento de âncora do quiz não encontrado ou alias ausente na URL.");
+                    // Fallback para páginas muito básicas
+                    document.body.innerHTML += '<p style="color: red; text-align: center;">Erro: O ID do quiz não foi especificado na URL.</p>';
                 }
             }
         });
     </script>
+
+    <p>Este é um conteúdo de exemplo da página cliente.</p>
+    <p>O quiz deverá ocupar a tela inteira acima de mim.</p>
 </body>
 </html>
